@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}New Workout - TrackFit{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Log New Workout</h2>
+                <form method="POST" action="{{ url_for('new_workout') }}" id="workoutForm">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Workout Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="date" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="duration" class="form-label">Duration (minutes)</label>
+                        <input type="number" class="form-control" id="duration" name="duration" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+
+                    <h4 class="mt-4 mb-3">Exercises</h4>
+                    <div id="exercises">
+                        <div class="exercise-entry mb-3 p-3 border rounded">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Exercise</label>
+                                    <select class="form-select" name="exercise_id[]" required>
+                                        <option value="">Select Exercise</option>
+                                        {% for exercise in exercises %}
+                                            <option value="{{ exercise.id }}">{{ exercise.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label">Sets</label>
+                                    <input type="number" class="form-control" name="sets[]" min="1" required>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label">Reps</label>
+                                    <input type="number" class="form-control" name="reps[]" min="1" required>
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label">Weight (kg)</label>
+                                    <input type="number" class="form-control" name="weight[]" step="0.1" min="0">
+                                </div>
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="button" class="btn btn-danger d-block w-100 remove-exercise">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary mb-3" id="addExercise">
+                        <i class="fas fa-plus"></i> Add Exercise
+                    </button>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Save Workout</button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const exercisesContainer = document.getElementById('exercises');
+    const addExerciseBtn = document.getElementById('addExercise');
+    const form = document.getElementById('workoutForm');
+
+    // Set today's date as default
+    document.getElementById('date').valueAsDate = new Date();
+
+    // Add new exercise entry
+    addExerciseBtn.addEventListener('click', function() {
+        const exerciseEntry = exercisesContainer.children[0].cloneNode(true);
+        exerciseEntry.querySelectorAll('input').forEach(input => input.value = '');
+        exerciseEntry.querySelector('select').value = '';
+        exercisesContainer.appendChild(exerciseEntry);
+        updateRemoveButtons();
+    });
+
+    // Remove exercise entry
+    function updateRemoveButtons() {
+        document.querySelectorAll('.remove-exercise').forEach(button => {
+            button.onclick = function() {
+                if (exercisesContainer.children.length > 1) {
+                    this.closest('.exercise-entry').remove();
+                }
+            };
+        });
+    }
+
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        const exerciseSelects = document.querySelectorAll('select[name="exercise_id[]"]');
+        let hasSelectedExercise = false;
+
+        exerciseSelects.forEach(select => {
+            if (select.value) {
+                hasSelectedExercise = true;
+            }
+        });
+
+        if (!hasSelectedExercise) {
+            e.preventDefault();
+            alert('Please select at least one exercise');
+        }
+    });
+
+    updateRemoveButtons();
+});
+</script>
+{% endblock %} 

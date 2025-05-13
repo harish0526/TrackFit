@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Progress - TrackFit{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Your Progress</h2>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ total_workouts }}</h3>
+                    <p class="card-text">Total Workouts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ exercise_stats|length }}</h3>
+                    <p class="card-text">Exercises Tracked</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ personal_records|length }}</h3>
+                    <p class="card-text">Personal Records</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Workouts Last 7 Days</h5>
+                    <canvas id="workoutChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Workout Duration (minutes)</h5>
+                    <canvas id="durationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exercise Statistics -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Most Common Exercises</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Exercise</th>
+                                    <th>Times Performed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exercise, count in exercise_stats %}
+                                <tr>
+                                    <td>{{ exercise }}</td>
+                                    <td>{{ count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Personal Records</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Exercise</th>
+                                    <th>Max Weight (kg)</th>
+                                    <th>Max Reps</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for exercise, max_weight, max_reps in personal_records %}
+                                <tr>
+                                    <td>{{ exercise }}</td>
+                                    <td>{{ "%.1f"|format(max_weight) if max_weight else "N/A" }}</td>
+                                    <td>{{ max_reps if max_reps else "N/A" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Workout Count Chart
+const workoutCtx = document.getElementById('workoutChart').getContext('2d');
+new Chart(workoutCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ dates|tojson }},
+        datasets: [{
+            label: 'Workouts',
+            data: {{ workout_counts|tojson }},
+            backgroundColor: 'rgba(52, 152, 219, 0.5)',
+            borderColor: 'rgba(52, 152, 219, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+
+// Duration Chart
+const durationCtx = document.getElementById('durationChart').getContext('2d');
+new Chart(durationCtx, {
+    type: 'line',
+    data: {
+        labels: {{ dates|tojson }},
+        datasets: [{
+            label: 'Duration (minutes)',
+            data: {{ total_duration|tojson }},
+            fill: false,
+            borderColor: 'rgba(46, 204, 113, 1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %} 

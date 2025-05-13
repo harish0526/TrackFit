@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - TrackFit{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Welcome, {{ current_user.username }}!</h2>
+        <p class="lead">Track your fitness journey and monitor your progress.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('new_workout') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Workout
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Recent Workouts</h5>
+                {% if workouts %}
+                    <div class="list-group list-group-flush">
+                        {% for workout in workouts[:5] %}
+                            <div class="list-group-item">
+                                <h6 class="mb-1">{{ workout.name }}</h6>
+                                <small class="text-muted">{{ workout.date.strftime('%B %d, %Y') }}</small>
+                                {% if workout.duration %}
+                                    <br>
+                                    <small class="text-muted">Duration: {{ workout.duration }} minutes</small>
+                                {% endif %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Exercises:</small>
+                                    <ul class="list-unstyled">
+                                        {% for exercise in workout.exercises %}
+                                            <li>
+                                                <small>{{ exercise.exercise.name }}: {{ exercise.sets }}x{{ exercise.reps }}
+                                                    {% if exercise.weight %}({{ exercise.weight }}kg){% endif %}
+                                                </small>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No workouts logged yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Workout History</h5>
+                {% if workouts %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Workout</th>
+                                    <th>Duration</th>
+                                    <th>Exercises</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for workout in workouts %}
+                                    <tr>
+                                        <td>{{ workout.date.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ workout.name }}</td>
+                                        <td>{{ workout.duration or 'N/A' }} min</td>
+                                        <td>{{ workout.exercises|length }} exercises</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#workout{{ workout.id }}" 
+                                                    aria-expanded="false">
+                                                Show Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" class="p-0">
+                                            <div class="collapse" id="workout{{ workout.id }}">
+                                                <div class="card card-body m-2">
+                                                    <h6>Exercise Details:</h6>
+                                                    <ul class="list-unstyled">
+                                                        {% for exercise in workout.exercises %}
+                                                            <li>
+                                                                {{ exercise.exercise.name }}: 
+                                                                {{ exercise.sets }} sets × {{ exercise.reps }} reps
+                                                                {% if exercise.weight %}({{ exercise.weight }}kg){% endif %}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                    {% if workout.notes %}
+                                                        <h6>Notes:</h6>
+                                                        <p class="mb-0">{{ workout.notes }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No workout history available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Workouts</h5>
+                <h3 class="mb-0">{{ workouts|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">This Month</h5>
+                <h3 class="mb-0">{{ workouts|selectattr('date', '>=', now.replace(day=1))|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Exercises</h5>
+                <h3 class="mb-0">{{ workouts|map(attribute='exercises')|map('length')|sum }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+});
+</script>
+{% endblock %} 
